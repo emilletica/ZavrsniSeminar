@@ -1,0 +1,74 @@
+﻿@page "/checkout"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient
+@inject NavigationManager navManager
+@inject ShoppingCartInMemory shoppingCartInMemory
+
+<h3>Checkout</h3>
+
+ <form>
+    <div class="mb-3">
+        <label for="imeprezime" class="form-label">Ime i prezime</label>
+            <input type="text" @bind-value="ime" class="form-control" id="imeprezime" aria-describedby="Ime i prezime">
+
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">E-mail</label>
+        <input type="email" @bind-value="email" class="form-control" id="email">
+    </div>
+    <button type="button" @onclick="Kupi" class="btn btn-primary">Kupi</button>
+    </form>
+
+
+
+@code {
+    public string ime = "";
+    public string email = "";
+
+    public async Task Kupi()
+    {
+        Guid orderId = Guid.NewGuid();
+
+        foreach (var item in shoppingCartInMemory.selectedItems)
+        {
+            BuyProducts products = new BuyProducts();
+            products.ProductId = item.ProductId;
+            products.OrderId = orderId;
+            products.NumberOfItems = item.NumberOfItems;
+            products.PricePerProduct = item.Product.ProductPrice;
+            products.ProductDiscount = item.Product.Discount;
+            products.OrderedByName = ime;
+            products.OrderedByEmail = email;
+            if (products.ProductDiscount > 0)
+            {
+                var discount = ((Convert.ToDouble(item.Product.Discount) / 100)
+                        * Convert.ToDouble(item.Product.ProductPrice));
+                var result = Math
+                .Round(Convert.ToDouble(item.Product.ProductPrice) - discount, 2);
+                result = result * item.NumberOfItems;
+
+                products.TotalAmmount = (decimal)result;
+            }
+            else
+            {
+                products.TotalAmmount = (decimal)item.Product.ProductPrice * (decimal)item.NumberOfItems;
+            }
+
+            products.IsPayed = false;
+            products.IsDelivered = false;
+
+            var response = await httpClient.PostAsJsonAsync("https://expertshopapi.azurewebsites.net/api/ShoppingCards", products);
+            if (response.IsSuccessStatusCode)
+            {
+
+                navManager.NavigateTo("/");
+            }
+
+
+        }
+    }
+
+
+
+
+}

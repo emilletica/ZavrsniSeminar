@@ -1,0 +1,49 @@
+﻿@page "/admin/delete-category/{id:int}"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient
+@inject NavigationManager navManager
+
+<h3>Delete Category</h3>
+
+@if (IsError)
+{
+    <div class="alert alert-danger" role="alert">
+        Dogodila se greška, pokušajte ponovno!
+    </div>
+}
+
+<h4>Are you shure you want to Delete @category.CategoryName ?</h4>
+<p>@category.CategoryDescription</p>
+<button type="button" @onclick="()=>CategoryDelete(category.Id)" class="btn btn-danger">Delete</button>
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private Category category = new Category();
+    public bool IsError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/Categories/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+
+            category = await result.Content.ReadFromJsonAsync<Category>();
+        }
+    }
+    
+        private async Task CategoryDelete(int id)
+        {
+            var result = await httpClient.DeleteAsync($"https://expertshopapi.azurewebsites.net/api/Categories/{id}");
+
+            if (result.IsSuccessStatusCode)
+            {
+                navManager.NavigateTo("/Admin/category-list");
+            }
+            else
+            {
+                IsError = true;
+                StateHasChanged();
+            }
+}
+}

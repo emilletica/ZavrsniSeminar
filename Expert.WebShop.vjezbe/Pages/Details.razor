@@ -1,0 +1,44 @@
+﻿@page "/product-details/{id:int}"
+@inject HttpClient httpClient;
+@inject ShoppingCartInMemory shoppingCartInMemory
+@inject NavigationManager navManager;
+@using Models;
+<h3>Details</h3>
+
+<div class="card" style="width: 18rem;">
+    <img class="card-img-top" src="@productDetails.ImagePath" alt="Card image cap">
+    <div class="card-body">
+        <h5 class="card-title">@productDetails.ProductName</h5>
+        <p class="card-text">@productDetails.ProductDescription</p>
+        <p class="card-text">@productDetails.ProductPrice€</p>
+        <p class="card-text">@productDetails.Discount%</p>
+    </div>
+</div>
+
+<button class="btn-info" @onclick="()=>shoppingCartInMemory.AddToShoppingCart(productDetails.Id)">Dodaj u košaricu</button>
+
+
+<button type="button" class="btn-light" @onclick="Natrag">Natrag na listu</button>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    
+    private Product productDetails = new Product();
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/Products/{Id}");
+        if (result.IsSuccessStatusCode)
+        {
+            productDetails = await result.Content.ReadFromJsonAsync<Product>();
+        }
+
+    }
+
+    public async Task Natrag()
+    {
+        navManager.NavigateTo($"/category/{productDetails.CategoryId}");
+
+    }
+
+
+}

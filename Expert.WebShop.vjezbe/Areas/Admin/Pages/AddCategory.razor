@@ -1,0 +1,54 @@
+﻿@page "/admin/add-category"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient;
+@inject NavigationManager navManager;
+
+
+<h3>Add Category</h3>
+
+
+<form @onsubmit="CategoryAdd">
+    
+    <div class="mb-3">
+        <label for="categoryName" class="form-label">Category Name</label>
+        <input type="text" @bind-value="category.CategoryName" class="form-control" id="categoryName" aria-describedby="Category Name">
+
+    </div>
+    <div class="mb-3">
+        <label for="categoryDescription" class="form-label">Category Description</label>
+        <input type="text" @bind-value="category.CategoryDescription" class="form-control" id="categoryDescription">
+    </div>
+    <div class="mb-3">
+        <label for="imgPath" class="form-label">Image Path</label>
+        <input type="url" @bind-value="category.ImagePath" class="form-control" id="imgPath">
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" @bind-value="category.IsHidden" class="form-check-input" id="isHidden">
+        <label class="form-check-label" for="isHidden">Is Hidden?</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@code {
+    private Category category = new Category();
+    private bool IsError = false;
+
+    private async void CategoryAdd()  //void je procedura kada ne treba vratiti rezultat, task je sa return
+    {
+        var result = await httpClient.PostAsJsonAsync($"https://expertshopapi.azurewebsites.net/api/Categories", category);
+
+        if (result.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Admin/category-list");
+        }
+        else
+        {
+            IsError = true;
+            StateHasChanged();
+        }
+    }
+
+}
+
+

@@ -1,0 +1,51 @@
+﻿@page "/admin/delete-product/{id:int}"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient
+@inject NavigationManager navManager
+
+<h3>DeleteProduct</h3>
+
+<div>Are you shure to delete @product.ProductName ?</div>
+<p>@product.ProductDescription</p>
+<button type="button" @onclick="()=>ProductDelete(product.Id)" class="btn btn-danger">Delete</button>
+
+@if (IsError)
+{
+    <div class="alert alert-danger" role="alert">
+        Dogodila se greška, pokušajte ponovno!
+        </div>
+}
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+
+    private Product product = new Product();
+    private bool IsError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/Products/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+
+            product = await result.Content.ReadFromJsonAsync<Product>();
+        }
+    }
+
+    private async Task ProductDelete(int id)
+    {
+        var result = await httpClient.DeleteAsync($"https://expertshopapi.azurewebsites.net/api/Products/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Admin/product-list");
+        }
+        else
+        {
+            IsError = true;
+            StateHasChanged();
+        }
+    }
+
+
+}

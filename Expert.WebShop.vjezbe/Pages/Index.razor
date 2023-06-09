@@ -1,0 +1,46 @@
+﻿@page "/"
+@using Expert.WebShop.vjezbe.Models;
+<PageTitle>Početna</PageTitle>
+@inject HttpClient httpClient
+@inject NavigationManager navManager
+
+
+<h1>Webshop</h1>
+
+@foreach (var item in categories)
+{
+    <div class="card" style="width: 18rem;">
+        <img class="card-img-top" src="@item.ImagePath" alt="Card image cap">
+        <div class="card-body">
+            <h5 class="card-title">@item.CategoryName</h5>
+            <p class="card-text">@item.CategoryDescription</p>
+            <p class="card-text">Is hidden: @item.IsHidden</p>
+
+            <a @onclick="()=>Navigate(item.Id)" class="btn btn-primary">Otvori</a>
+        </div>
+    </div>
+
+}
+
+
+
+
+@code
+{
+    List<Category> categories = new List<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync("https://expertshopapi.azurewebsites.net/api/Categories");
+        if (result.IsSuccessStatusCode)
+        {
+            categories = await result.Content.ReadFromJsonAsync<List<Category>>();
+        }
+    }
+
+    private async Task Navigate(int id)
+    {
+        navManager.NavigateTo($"/category/{id}");
+    }
+
+}

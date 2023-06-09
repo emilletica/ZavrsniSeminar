@@ -1,0 +1,63 @@
+﻿@page "/admin/edit-category/{Id:int}"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient;
+@inject NavigationManager navManager;
+
+<PageTitle>Edit Category</PageTitle>
+<h3>Edit Category</h3>
+
+
+<form @onsubmit="CategoryEdit">
+
+    <div class="mb-3">
+        <label for="categoryName" class="form-label">Category Name</label>
+        <input type="text" @bind-value="category.CategoryName" class="form-control" id="categoryName" aria-describedby="Category Name">
+
+    </div>
+    <div class="mb-3">
+        <label for="categoryDescription" class="form-label">Category Description</label>
+        <input type="text" @bind-value="category.CategoryDescription" class="form-control" id="categoryDescription">
+    </div>
+    <div class="mb-3">
+        <label for="imgPath" class="form-label">Image Path</label>
+        <input type="url" @bind-value="category.ImagePath" class="form-control" id="imgPath">
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" @bind-value="category.IsHidden" class="form-check-input" id="isHidden">
+        <label class="form-check-label" for="isHidden">Is Hidden?</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private bool IsError = false;
+    private Category category = new Category();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/Categories/{Id}");
+        if (result.IsSuccessStatusCode)
+        {
+
+            category = await result.Content.ReadFromJsonAsync<Category>();
+        }
+    }
+
+    private async void CategoryEdit()
+    {
+        var result = await httpClient.PutAsJsonAsync($"https://expertshopapi.azurewebsites.net/api/Categories/{Id}", category);
+
+        if (result.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Admin/category-list");
+        }
+        else
+        {
+            IsError = true;
+            StateHasChanged();
+        }
+    }
+}

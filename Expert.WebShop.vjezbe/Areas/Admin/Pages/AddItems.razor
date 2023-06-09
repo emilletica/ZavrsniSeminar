@@ -1,0 +1,82 @@
+﻿@page "/admin/add-items"
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient;
+@inject NavigationManager navManager
+
+<PageTitle>Add new Item</PageTitle>
+<h3>Add new Items</h3>
+
+@if (IsError)
+{
+    <p>Dogodila se greška! Pokušajte ponovno!</p>
+}
+
+<form @onsubmit="submit">
+    <div class="mb-3">
+        <label for="cat" class="form-label">Select Category</label>
+        <select class="form-select" @bind="products.CategoryId" name="" id="cat">
+            <option selected>Pick Category for Item</option>
+            @foreach(var item in categories)
+            {
+                <option value="@item.Id">@item.CategoryName</option>
+            }
+        </select>
+
+    </div>
+    <div class="mb-3">
+        <label for="productName" class="form-label">Product Name</label>
+        <input type="text" @bind-value="products.ProductName" class="form-control" id="productName" aria-describedby="Product Name">
+      
+    </div>
+    <div class="mb-3">
+        <label for="productDescription" class="form-label">Product Description</label>
+        <input type="text" @bind-value="products.ProductDescription" class="form-control" id="productDescription">
+    </div>
+    <div class="mb-3">
+        <label for="productPrice" class="form-label">Product Price</label>
+        <input type="number" @bind-value="products.ProductPrice" class="form-control" id="productPrice">
+    </div>
+    <div class="mb-3">
+        <label for="discount" class="form-label">Discount</label>
+        <input type="number" @bind-value="products.Discount" class="form-control" id="discount">
+    </div>
+    <div class="mb-3">
+        <label for="imgPath" class="form-label">Image Path</label>
+        <input type="url" @bind-value="products.ImagePath" class="form-control" id="imgPath">
+    </div>
+
+   
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@code {
+    private bool IsError = false;
+    private Product products = new Product();
+    private List<Category> categories = new List<Category>();
+    private Category category = new Category();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/Categories");
+        if (result.IsSuccessStatusCode)
+        {
+            categories = await result.Content.ReadFromJsonAsync<List<Category>>();
+        }
+    }
+
+    private async Task submit()
+    {
+        var result = await httpClient.PostAsJsonAsync("https://expertshopapi.azurewebsites.net/api/Products", products);
+
+        if (result.IsSuccessStatusCode)
+        {
+            navManager.NavigateTo("/Admin/product-list");
+        }
+        else
+        {
+            IsError = true;
+
+            StateHasChanged();
+        }
+    } 
+}

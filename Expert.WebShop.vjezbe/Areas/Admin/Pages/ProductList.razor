@@ -1,0 +1,81 @@
+﻿@page "/Admin/product-list"
+@using Expert.WebShop.Vjezbe.Models;
+@using Expert.WebShop.vjezbe.Models;
+@inject HttpClient httpClient;
+@inject NavigationManager navigationManager;
+<h3>ProductList</h3>
+
+<ul>
+  
+    <button type="button" @onclick="AddItem" class="btn btn-success">Add new product</button>
+    <br />
+    @foreach (var item in products)
+    {
+        <li>
+            <br>
+            <button type="button" @onclick="()=>Edit(item.Id)" class="btn btn-primary">Edit</button>
+            <button type="button" @onclick="()=>Delete(item.Id)" class="btn btn-danger">Delete</button>
+            <div class="card" style="width: 18rem">
+                <img class="card-img-top" src="@item.ImagePath" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        @item.ProductName
+                    </h5>
+                    <p class="card-text">@item.ProductDescription</p>
+                    <br>
+                </div>
+            </div>
+            <br />
+        </li>
+    }
+</ul>
+
+@code {
+    private List<Product> products = new List<Product>();
+    private List<ImageFilePath> productImages = new List<ImageFilePath>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var apiResult = await httpClient.GetAsync("https://expertshopapi.azurewebsites.net/api/Products");
+        if (apiResult.IsSuccessStatusCode)
+        {
+            products = await apiResult.Content.ReadFromJsonAsync<List<Product>>();
+
+            foreach (var item in products)
+            {
+                var getImg = await GetImages(item.Id);
+                productImages.AddRange(getImg);
+            }
+        }
+    }
+
+    public async Task<List<ImageFilePath>> GetImages(int id)
+    {
+        var apiResult = await httpClient.GetAsync($"https://expertshopapi.azurewebsites.net/api/FilesUpload/GetProductPhotos/{id}");
+        var images = new List<ImageFilePath>();
+        if (apiResult.IsSuccessStatusCode)
+        {
+            images = await apiResult.Content.ReadFromJsonAsync<List<ImageFilePath>>();
+
+        }
+        return images;
+
+    }
+
+    public async void Edit(int id)
+    {
+        navigationManager.NavigateTo($"Admin/edit-product/{id}");
+    }
+
+    public async void Delete(int id)
+    {
+
+        navigationManager.NavigateTo($"/admin/delete-product/{id}");
+    }
+
+    public async void AddItem()
+    {
+        navigationManager.NavigateTo("/admin/add-items");
+    }
+}
